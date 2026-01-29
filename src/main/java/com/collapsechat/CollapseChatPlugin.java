@@ -1,15 +1,17 @@
 package com.collapsechat;
 
 import com.google.inject.Provides;
-
-import javax.inject.Inject;
-
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.ChatMessageType;
+import net.runelite.api.Client;
 import net.runelite.api.ScriptID;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.events.VarClientIntChanged;
 import net.runelite.api.gameval.VarClientID;
+import net.runelite.api.gameval.VarPlayerID;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -18,7 +20,9 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.task.Schedule;
 
+import javax.inject.Inject;
 import java.time.temporal.ChronoUnit;
+
 
 @Slf4j
 @PluginDescriptor(
@@ -27,6 +31,8 @@ import java.time.temporal.ChronoUnit;
         tags = {"chat", "collapse", "ui"}
 )
 public class CollapseChatPlugin extends Plugin {
+    @Inject
+    private Client client;
     @Inject
     private ClientThread clientThread;
     @Inject
@@ -58,7 +64,7 @@ public class CollapseChatPlugin extends Plugin {
 
     private void refreshAll() {
         widgetManager.setupMouseListeners(state, this::refreshChatWidgets);
-        updateCollapseState();
+        updateChatState();
         refreshChatWidgets();
     }
 
@@ -78,7 +84,7 @@ public class CollapseChatPlugin extends Plugin {
         if (!"Switch tab".equals(event.getMenuOption())) return;
 
         clientThread.invokeLater(() -> {
-            updateCollapseState();
+            updateChatState();
             refreshChatWidgets();
         });
     }
@@ -97,6 +103,16 @@ public class CollapseChatPlugin extends Plugin {
         }
     }
 
+    @Subscribe
+    public void onChatMessage(ChatMessage event) {
+        if (state.isCollapsed()) {
+            if (isSubscribedToChatMessageType(event.getType())) {
+                state.hasUnseenMessages = true;
+            }
+        }
+        clientThread.invokeLater(this::refreshChatWidgets);
+    }
+
     @Schedule(period = 500, unit = ChronoUnit.MILLIS)
     public void reportTextPoller() {
         if (config.collapsedButtonContent() == CollapseChatConfig.CollapsedButtonContent.REPORT_BUTTON_TEXT) {
@@ -104,8 +120,42 @@ public class CollapseChatPlugin extends Plugin {
         }
     }
 
-    private void updateCollapseState() {
+    private boolean isUsingSplitPrivateChat() {
+        return client.getVarpValue(VarPlayerID.OPTION_PM) == 1;
+    }
+
+    private boolean isPrivateChatHiddenWithChat() {
+        return client.getVarbitValue(VarbitID.HIDE_PM_ALONGSIDE_CHATBOX) == 1;
+    }
+
+    private boolean arePrivateMessagesHiddenOnCollapse() {
+        return !isUsingSplitPrivateChat() || isPrivateChatHiddenWithChat();
+    }
+
+    private boolean isSubscribedToChatMessageType(ChatMessageType messageType) {
+        switch (messageType) {
+            case PUBLICCHAT:
+                return config.highlightOnUnreadPublicMessages();
+            case PRIVATECHAT:
+                return config.highlightOnUnreadPrivateMessages() && arePrivateMessagesHiddenOnCollapse();
+            case CLAN_CHAT:
+                return config.highlightOnUnreadClanChatMessages();
+            case TRADE:
+                return config.highlightOnUnreadTradeMessages();
+            case FRIENDSCHAT:
+                return config.highlightOnUnreadFriendsChatMessages();
+            default:
+                return false;
+        }
+    }
+
+    private void updateChatState() {
         Integer selected = widgetManager.getSelectedChatButton();
-        state.collapseState = (selected == null) ? ChatCollapseState.COLLAPSED : ChatCollapseState.EXPANDED;
+        if (selected == null) {
+            state.collapseState = ChatCollapseState.COLLAPSED;
+        } else {
+            state.collapseState = ChatCollapseState.EXPANDED;
+            state.hasUnseenMessages = false;
+        }
     }
 }

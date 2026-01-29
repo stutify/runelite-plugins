@@ -28,9 +28,17 @@ public interface CollapseChatConfig extends Config {
     class Keys {
         public static final String CONTENT_TYPE = "collapsed-button-content";
         public static final String TRANSPARENT = "collapsed-button-transparent";
+
         public static final String STATIC_TEXT_SECTION = "static-text-section";
         public static final String CUSTOM_TEXT = "collapsed-button-content-text";
         public static final String CUSTOM_TEXT_HOVER = "collapsed-button-content-text-hovered";
+
+        public static final String UNREAD_MESSAGE_SECTION = "report-button-section";
+        public static final String HIGHLIGHT_ON_UNREAD_PUBLIC_CHAT_MESSAGES = "highlight-on-unread-public-messages";
+        public static final String HIGHLIGHT_ON_UNREAD_PRIVATE_MESSAGES = "highlight-on-unread-private-messages";
+        public static final String HIGHLIGHT_ON_UNREAD_CLAN_CHAT_MESSAGES = "highlight-on-unread-clanchat-messages";
+        public static final String HIGHLIGHT_ON_UNREAD_FRIENDS_CHAT_MESSAGES = "highlight-on-unread-friendschat-messages";
+        public static final String HIGHLIGHT_ON_UNREAD_TRADE_MESSAGES = "highlight-on-unread-trade-messages";
     }
 
     @ConfigItem(
@@ -81,5 +89,68 @@ public interface CollapseChatConfig extends Config {
     )
     default String collapsedButtonContentCustomTextHovered() {
         return "+";
+    }
+
+    @ConfigSection(
+            name = "Highlight on unread messages",
+            description = "Configure which types of unread chat messages highlight the button",
+            position = 6,
+            closedByDefault = true
+    )
+    String unreadMessagesSection = Keys.UNREAD_MESSAGE_SECTION;
+
+    @ConfigItem(
+            keyName = Keys.HIGHLIGHT_ON_UNREAD_PUBLIC_CHAT_MESSAGES,
+            name = "Public",
+            description = "Highlight button on unread public chat messages",
+            position = 7,
+            section = Keys.UNREAD_MESSAGE_SECTION
+    )
+    default boolean highlightOnUnreadPublicMessages() {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = Keys.HIGHLIGHT_ON_UNREAD_PRIVATE_MESSAGES,
+            name = "Private",
+            description = "Highlight button on unread private chat messages",
+            position = 8,
+            section = Keys.UNREAD_MESSAGE_SECTION
+    )
+    default boolean highlightOnUnreadPrivateMessages() {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = Keys.HIGHLIGHT_ON_UNREAD_FRIENDS_CHAT_MESSAGES,
+            name = "Friends chat",
+            description = "Highlight button on unread friends chat messages",
+            position = 9,
+            section = Keys.UNREAD_MESSAGE_SECTION
+    )
+    default boolean highlightOnUnreadFriendsChatMessages() {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = Keys.HIGHLIGHT_ON_UNREAD_CLAN_CHAT_MESSAGES,
+            name = "Clan",
+            description = "Highlight button on unread clan chat messages",
+            position = 10,
+            section = Keys.UNREAD_MESSAGE_SECTION
+    )
+    default boolean highlightOnUnreadClanChatMessages() {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = Keys.HIGHLIGHT_ON_UNREAD_TRADE_MESSAGES,
+            name = "Trade",
+            description = "Highlight button on unread trade chat messages",
+            position = 11,
+            section = Keys.UNREAD_MESSAGE_SECTION
+    )
+    default boolean highlightOnUnreadTradeMessages() {
+        return false;
     }
 }
