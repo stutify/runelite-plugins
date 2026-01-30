@@ -35,12 +35,10 @@ public class ChatWidgetManager {
 
     private void updateAllButtonGraphic(ChatState state) {
         runOnWidgetIfPresent(ChatButton.ALL.graphicID, (Widget w) -> {
-            if (config.collapsedButtonTransparent()) {
-                w.setOpacity(state.isCollapsed() ? 255 : 0);
-                return;
-            }
+            boolean shouldBeTransparent = state.isCollapsed() && config.collapsedButtonTransparent();
+            w.setOpacity(shouldBeTransparent ? 255 : 0);
 
-            if (state.isCollapsed()) {
+            if (!config.collapsedButtonTransparent() && state.isCollapsed()) {
                 if (state.isMouseOverAllButton) {
                     w.setSpriteId(SpriteID.ChatTabButton.HOVERED);
                 } else if (state.hasUnseenMessages) {
