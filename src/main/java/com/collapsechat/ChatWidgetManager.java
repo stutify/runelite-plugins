@@ -21,9 +21,9 @@ public class ChatWidgetManager {
 
     private static final String ORIGINAL_ALL_BUTTON_TEXT = "All";
 
-    public void updateChatWidgets(ChatState state, boolean isResizable) {
+    public void updateChatWidgets(ChatState state) {
         toggleChatButtonVisibility(state);
-        applyAllButtonTransparency(state);
+        updateAllButtonGraphic(state);
         updateButtonContent(state);
     }
 
@@ -33,17 +33,27 @@ public class ChatWidgetManager {
         }
     }
 
-    private void applyAllButtonTransparency(ChatState state) {
+    private void updateAllButtonGraphic(ChatState state) {
         runOnWidgetIfPresent(ChatButton.ALL.graphicID, (Widget w) -> {
-            boolean shouldBeTransparent = state.isCollapsed() && config.collapsedButtonTransparent();
-            w.setOpacity(shouldBeTransparent ? 255 : 0);
-        });
+            if (config.collapsedButtonTransparent()) {
+                w.setOpacity(state.isCollapsed() ? 255 : 0);
+                return;
+            }
 
-        updateButtonContent(state);
+            if (state.isCollapsed()) {
+                if (state.isMouseOverAllButton) {
+                    w.setSpriteId(SpriteID.ChatTabButton.HOVERED);
+                } else if (state.hasUnseenMessages) {
+                    w.setSpriteId(SpriteID.ChatTabButton.NEW_MESSAGES);
+                } else {
+                    w.setSpriteId(SpriteID.ChatTabButton.BUTTON);
+                }
+            }
+        });
     }
 
     public void setupMouseListeners(ChatState state, Runnable onStateChanged) {
-        runOnWidgetIfPresent(ChatButton.ALL.graphicID, (Widget allButton) -> {
+        runOnWidgetIfPresent(ChatButton.ALL.containerID, (Widget allButton) -> {
             allButton.setOnMouseOverListener((JavaScriptCallback) ev -> {
                 state.isMouseOverAllButton = true;
                 onStateChanged.run();
