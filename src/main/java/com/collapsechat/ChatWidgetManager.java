@@ -38,16 +38,34 @@ public class ChatWidgetManager {
             boolean shouldBeTransparent = state.isCollapsed() && config.collapsedButtonTransparent();
             w.setOpacity(shouldBeTransparent ? 255 : 0);
 
-            if (!config.collapsedButtonTransparent() && state.isCollapsed()) {
-                if (state.isMouseOverAllButton) {
-                    w.setSpriteId(SpriteID.ChatTabButton.HOVERED);
-                } else if (state.hasUnseenMessages) {
-                    w.setSpriteId(SpriteID.ChatTabButton.NEW_MESSAGES);
-                } else {
-                    w.setSpriteId(SpriteID.ChatTabButton.BUTTON);
-                }
+            if (config.collapsedButtonTransparent()) {
+                return;
             }
+
+            w.setSpriteId(determineAllButtonSprite(state));
         });
+    }
+
+    private int determineAllButtonSprite(ChatState state) {
+        if (state.isCollapsed()) {
+            if (state.isMouseOverAllButton) {
+                return SpriteID.ChatTabButton.HOVERED;
+            }
+            if (state.hasUnseenMessages) {
+                return SpriteID.ChatTabButton.NEW_MESSAGES;
+            }
+        } else {
+            if (state.selectedChatButton == ChatButton.ALL && state.isMouseOverAllButton) {
+                return SpriteID.ChatTabButton.SELECTED_HOVERED;
+            }
+            if (state.selectedChatButton == ChatButton.ALL) {
+                return SpriteID.ChatTabButton.SELECTED;
+            }
+            if (state.isMouseOverAllButton) {
+                return SpriteID.ChatTabButton.HOVERED;
+            }
+        }
+        return SpriteID.ChatTabButton.BUTTON;
     }
 
     public void setupMouseListeners(ChatState state, Runnable onStateChanged) {
@@ -95,7 +113,7 @@ public class ChatWidgetManager {
         });
     }
 
-    public Integer getSelectedChatButton() {
+    public ChatButton getSelectedChatButton() {
         for (int buttonGraphicId : ChatButton.ALL_GRAPHIC_IDS) {
             Widget graphic = client.getWidget(buttonGraphicId);
             if (graphic == null || graphic.getSpriteId() == -1) {
@@ -104,7 +122,7 @@ public class ChatWidgetManager {
 
             int sprite = graphic.getSpriteId();
             if (sprite == SpriteID.ChatTabButton.SELECTED || sprite == SpriteID.ChatTabButton.SELECTED_HOVERED) {
-                return buttonGraphicId;
+                return ChatButton.fromGraphicID(buttonGraphicId);
             }
         }
         return null;

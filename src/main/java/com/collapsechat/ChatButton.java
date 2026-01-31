@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import net.runelite.api.gameval.InterfaceID;
 
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 @RequiredArgsConstructor
 public enum ChatButton {
@@ -33,5 +34,16 @@ public enum ChatButton {
         ALL_GRAPHIC_IDS = Arrays.stream(values())
                 .mapToInt(button -> button.graphicID)
                 .toArray();
+    }
+
+    public static ChatButton fromGraphicID(int graphicID) {
+        return ChatButton.findOrNull(button -> button.graphicID == graphicID);
+    }
+
+    private static ChatButton findOrNull(Predicate<ChatButton> predicate) {
+        return Arrays.stream(values())
+                .filter(predicate)
+                .findFirst()
+                .orElse(null);
     }
 }

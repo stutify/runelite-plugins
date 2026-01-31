@@ -56,10 +56,8 @@ public class CollapseChatPlugin extends Plugin {
 
     @Override
     protected void shutDown() {
-        clientThread.invokeLater(() -> {
-            state.collapseState = ChatCollapseState.EXPANDED;
-            widgetManager.updateChatWidgets(state);
-        });
+        state.reset();
+        clientThread.invokeLater(this::refreshChatWidgets);
     }
 
     private void refreshAll() {
@@ -150,8 +148,8 @@ public class CollapseChatPlugin extends Plugin {
     }
 
     private void updateChatState() {
-        Integer selected = widgetManager.getSelectedChatButton();
-        if (selected == null) {
+        state.selectedChatButton = widgetManager.getSelectedChatButton();
+        if (state.selectedChatButton == null) {
             state.collapseState = ChatCollapseState.COLLAPSED;
         } else {
             state.collapseState = ChatCollapseState.EXPANDED;
