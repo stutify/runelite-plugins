@@ -57,7 +57,13 @@ public class CollapseChatPlugin extends Plugin {
     @Override
     protected void shutDown() {
         state.reset();
-        clientThread.invokeLater(this::refreshChatWidgets);
+        clientThread.invokeLater(() -> {
+            refreshChatWidgets();
+
+            // We need to run script 113 to reset the on-hover behavior for the
+            // all button which breaks because we override the mouse event listeners
+            client.runScript(113);
+        });
     }
 
     private void refreshAll() {
